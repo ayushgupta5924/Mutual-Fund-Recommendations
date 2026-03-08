@@ -204,15 +204,14 @@ class ResultsScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // Open investment link
-                      final url = 'https://www.moneycontrol.com/mutual-funds/nav/hdfc-mutual-fund';
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Opening investment page for ${fund.schemeName}'),
+                          content: Text('Investment URL: ${fund.investmentUrl}'),
                           action: SnackBarAction(
                             label: 'OK',
                             onPressed: () {},
                           ),
+                          duration: const Duration(seconds: 4),
                         ),
                       );
                     },

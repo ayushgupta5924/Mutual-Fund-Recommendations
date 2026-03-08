@@ -37,6 +37,7 @@ class FundRecommendation {
   final double allocationPercentage;
   final double allocationAmount;
   final String reason;
+  final String investmentUrl;
 
   FundRecommendation({
     required this.schemeName,
@@ -50,6 +51,7 @@ class FundRecommendation {
     required this.allocationPercentage,
     required this.allocationAmount,
     required this.reason,
+    required this.investmentUrl,
   });
 
   factory FundRecommendation.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,7 @@ class FundRecommendation {
       allocationPercentage: json['allocation_percentage'].toDouble(),
       allocationAmount: json['allocation_amount'].toDouble(),
       reason: json['reason'],
+      investmentUrl: json['investment_url'],
     );
   }
 }

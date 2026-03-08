@@ -41,7 +41,8 @@ class RecommendationEngine:
                             risk_level=self._map_risk_level(category),
                             allocation_percentage=percentage,
                             allocation_amount=profile.budget * (percentage / 100),
-                            reason=self._get_reason(category, profile)
+                            reason=self._get_reason(category, profile),
+                            investment_url=f"https://www.mfapi.in/mf/{scheme_code}"
                         ))
                         total_percentage += percentage
                 except Exception as e:

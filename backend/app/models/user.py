@@ -34,3 +34,4 @@ class FundRecommendation(BaseModel):
     allocation_percentage: float
     allocation_amount: float
     reason: str
+    investment_url: str
