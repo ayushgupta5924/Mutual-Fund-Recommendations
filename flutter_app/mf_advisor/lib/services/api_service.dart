@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
+import '../utils/constants.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000/api';
-
   Future<List<FundRecommendation>> getRecommendations(UserProfile profile) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/recommend'),
+      Uri.parse('${AppConstants.baseUrl}/recommend'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(profile.toJson()),
     );

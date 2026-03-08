@@ -1,0 +1,29 @@
+# Flutter
+flutter_app/mf_advisor/.dart_tool/
+flutter_app/mf_advisor/.flutter-plugins
+flutter_app/mf_advisor/.flutter-plugins-dependencies
+flutter_app/mf_advisor/.packages
+flutter_app/mf_advisor/build/
+flutter_app/mf_advisor/.pub-cache/
+flutter_app/mf_advisor/.pub/
+flutter_app/mf_advisor/pubspec.lock
+
+# Python
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+backend/.venv/
+backend/env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
