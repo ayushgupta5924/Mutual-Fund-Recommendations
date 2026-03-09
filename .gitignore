@@ -8,6 +8,11 @@ flutter_app/mf_advisor/.pub-cache/
 flutter_app/mf_advisor/.pub/
 flutter_app/mf_advisor/pubspec.lock
 
+# Signing
+flutter_app/mf_advisor/android/key.properties
+flutter_app/mf_advisor/android/*.jks
+flutter_app/mf_advisor/android/*.keystore
+
 # Python
 backend/__pycache__/
 backend/**/__pycache__/

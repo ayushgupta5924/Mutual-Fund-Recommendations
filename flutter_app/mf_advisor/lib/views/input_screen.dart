@@ -64,8 +64,9 @@ class _InputScreenState extends State<InputScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}\n\nMake sure backend is running at http://localhost:8000'),
+            content: Text('Error: ${e.toString()}'),
             duration: const Duration(seconds: 5),
+            backgroundColor: Colors.red.shade700,
           ),
         );
       }
