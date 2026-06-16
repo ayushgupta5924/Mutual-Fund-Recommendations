@@ -8,15 +8,18 @@ class RecommendationEngine:
     
     def _get_safe_attr(self, profile, attr_name, default=None):
         """Helper to safely get attributes whether profile is an object or a dict"""
+        val = None
         if hasattr(profile, attr_name):
-            return getattr(profile, attr_name)
+            val = getattr(profile, attr_name)
         elif isinstance(profile, dict):
-            return profile.get(attr_name, default)
-        return default
+            val = profile.get(attr_name, default)
+        
+        # If the attribute exists but its value is explicitly None, use the default fallback
+        return val if val is not None else default
 
     def get_recommendations(self, profile: UserProfile) -> List[FundRecommendation]:
         """Generate fund recommendations based on user profile"""
-        # Safely extract budget up front
+        # Safely extract budget up front with a fallback of 0
         budget = self._get_safe_attr(profile, 'budget', 0)
         
         allocation = self._get_allocation_strategy(profile)
@@ -144,23 +147,4 @@ class RecommendationEngine:
             return 'Moderate'
         return 'Low'
     
-    def _get_reason(self, category: str, profile: UserProfile) -> str:
-        """Generate recommendation reason"""
-        budget = self._get_safe_attr(profile, 'budget', 0)
-        budget_note = ''
-        if budget < 10000:
-            budget_note = ' Focused allocation suitable for smaller investments.'
-        elif budget < 50000:
-            budget_note = ' Balanced diversification for medium investments.'
-        else:
-            budget_note = ' Full diversification for optimal risk management.'
-        
-        reasons = {
-            'Equity': 'High growth potential for long-term wealth creation.' + budget_note,
-            'Debt': 'Stable returns with lower risk.' + budget_note,
-            'Hybrid': 'Balanced approach with moderate risk.' + budget_note,
-            'Liquid': 'High liquidity for short-term needs.' + budget_note,
-            'Mid Cap': 'Higher growth potential with increased volatility.' + budget_note,
-            'ELSS': 'Tax benefits under Section 80C.' + budget_note
-        }
-        return reasons.get(category, 'Suitable for your investment profile.' + budget_note)
+    def _get_
