@@ -146,5 +146,3 @@ class RecommendationEngine:
         if any(x in category.lower() for x in ['hybrid', 'balanced']):
             return 'Moderate'
         return 'Low'
-    
-    def _get_
