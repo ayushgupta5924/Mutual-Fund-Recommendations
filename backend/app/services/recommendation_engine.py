@@ -6,8 +6,19 @@ class RecommendationEngine:
     def __init__(self):
         self.mf_service = MutualFundService()
     
+    def _get_safe_attr(self, profile, attr_name, default=None):
+        """Helper to safely get attributes whether profile is an object or a dict"""
+        if hasattr(profile, attr_name):
+            return getattr(profile, attr_name)
+        elif isinstance(profile, dict):
+            return profile.get(attr_name, default)
+        return default
+
     def get_recommendations(self, profile: UserProfile) -> List[FundRecommendation]:
         """Generate fund recommendations based on user profile"""
+        # Safely extract budget up front
+        budget = self._get_safe_attr(profile, 'budget', 0)
+        
         allocation = self._get_allocation_strategy(profile)
         recommendations = []
         
@@ -40,7 +51,7 @@ class RecommendationEngine:
                             returns_5y=self.mf_service.calculate_returns(nav_data, 5),
                             risk_level=self._map_risk_level(category),
                             allocation_percentage=percentage,
-                            allocation_amount=profile.budget * (percentage / 100),
+                            allocation_amount=budget * (percentage / 100),
                             reason=self._get_reason(category, profile),
                             investment_url=f"https://www.mfapi.in/mf/{scheme_code}"
                         ))
@@ -53,76 +64,74 @@ class RecommendationEngine:
         if recommendations and total_percentage != 100:
             adjustment = 100 - total_percentage
             recommendations[0].allocation_percentage += adjustment
-            recommendations[0].allocation_amount = profile.budget * (recommendations[0].allocation_percentage / 100)
+            recommendations[0].allocation_amount = budget * (recommendations[0].allocation_percentage / 100)
         
         return recommendations
     
     def _get_categories_for_profile(self, profile: UserProfile) -> List[str]:
         """Map user profile to fund categories"""
         categories = []
+        risk_tolerance = self._get_safe_attr(profile, 'risk_tolerance')
+        goals = self._get_safe_attr(profile, 'goals', [])
+        horizon = self._get_safe_attr(profile, 'investment_horizon', 0)
         
-        if profile.risk_tolerance == RiskTolerance.LOW:
+        if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
             categories.extend(['Debt', 'Liquid', 'Ultra Short'])
-        elif profile.risk_tolerance == RiskTolerance.MODERATE:
+        elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
             categories.extend(['Hybrid', 'Balanced', 'Debt'])
         else:
             categories.extend(['Equity', 'Large Cap', 'Mid Cap'])
         
-        if InvestmentGoal.TAX_SAVING in profile.goals:
+        if InvestmentGoal.TAX_SAVING in goals or 'TAX_SAVING' in goals:
             categories.append('ELSS')
         
-        if profile.investment_horizon < 3:
+        if horizon < 3:
             categories.extend(['Liquid', 'Short Duration'])
         
         return categories
     
     def _get_allocation_strategy(self, profile: UserProfile) -> dict:
         """Determine allocation percentages based on risk and budget"""
-        budget = profile.budget
-        horizon = profile.investment_horizon
+        budget = self._get_safe_attr(profile, 'budget', 0)
+        risk_tolerance = self._get_safe_attr(profile, 'risk_tolerance')
         
         # Dynamic fund count based on budget
         if budget < 5000:
-            # Very small: 1 fund
-            if profile.risk_tolerance == RiskTolerance.LOW:
+            if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
                 return {'Debt': 100}
-            elif profile.risk_tolerance == RiskTolerance.MODERATE:
+            elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
                 return {'Hybrid': 100}
             else:
                 return {'Equity': 100}
         
         elif budget < 10000:
-            # Small: 2 funds
-            if profile.risk_tolerance == RiskTolerance.LOW:
+            if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
                 return {'Debt': 70, 'Liquid': 30}
-            elif profile.risk_tolerance == RiskTolerance.MODERATE:
+            elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
                 return {'Hybrid': 60, 'Debt': 40}
             else:
                 return {'Equity': 70, 'Debt': 30}
         
         elif budget < 25000:
-            # Medium: 3 funds
-            if profile.risk_tolerance == RiskTolerance.LOW:
+            if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
                 return {'Debt': 50, 'Liquid': 30, 'Hybrid': 20}
-            elif profile.risk_tolerance == RiskTolerance.MODERATE:
+            elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
                 return {'Hybrid': 50, 'Debt': 30, 'Equity': 20}
             else:
                 return {'Equity': 50, 'Mid Cap': 30, 'Debt': 20}
         
         elif budget < 50000:
-            # Large: 4 funds
-            if profile.risk_tolerance == RiskTolerance.LOW:
+            if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
                 return {'Debt': 40, 'Liquid': 30, 'Hybrid': 20, 'Equity': 10}
-            elif profile.risk_tolerance == RiskTolerance.MODERATE:
+            elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
                 return {'Hybrid': 35, 'Debt': 30, 'Equity': 25, 'Liquid': 10}
             else:
                 return {'Equity': 40, 'Mid Cap': 30, 'Large Cap': 20, 'Debt': 10}
         
         else:
-            # Very large: 5+ funds
-            if profile.risk_tolerance == RiskTolerance.LOW:
+            if risk_tolerance == RiskTolerance.LOW or risk_tolerance == 'LOW':
                 return {'Debt': 35, 'Liquid': 25, 'Hybrid': 20, 'Equity': 15, 'Large Cap': 5}
-            elif profile.risk_tolerance == RiskTolerance.MODERATE:
+            elif risk_tolerance == RiskTolerance.MODERATE or risk_tolerance == 'MODERATE':
                 return {'Hybrid': 30, 'Equity': 25, 'Debt': 20, 'Mid Cap': 15, 'Liquid': 10}
             else:
                 return {'Equity': 35, 'Mid Cap': 25, 'Large Cap': 20, 'Hybrid': 10, 'Debt': 10}
@@ -131,16 +140,17 @@ class RecommendationEngine:
         """Map category to risk level"""
         if any(x in category.lower() for x in ['equity', 'mid cap', 'small cap']):
             return 'High'
-        elif any(x in category.lower() for x in ['hybrid', 'balanced']):
+        if any(x in category.lower() for x in ['hybrid', 'balanced']):
             return 'Moderate'
         return 'Low'
     
     def _get_reason(self, category: str, profile: UserProfile) -> str:
         """Generate recommendation reason"""
+        budget = self._get_safe_attr(profile, 'budget', 0)
         budget_note = ''
-        if profile.budget < 10000:
+        if budget < 10000:
             budget_note = ' Focused allocation suitable for smaller investments.'
-        elif profile.budget < 50000:
+        elif budget < 50000:
             budget_note = ' Balanced diversification for medium investments.'
         else:
             budget_note = ' Full diversification for optimal risk management.'
