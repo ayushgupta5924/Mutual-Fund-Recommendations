@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 class AppConstants {
   static const String appName = 'MF Advisor';
   static const String appTagline = 'Smart Mutual Fund Recommendations';
   
-  // For Chrome/web - use localhost
-  static const String baseUrl = 'http://localhost:8000/api';
+  static const String baseUrl = kReleaseMode 
+      ? 'https://mf-advisor-api.onrender.com/api' 
+      : 'http://localhost:8000/api';
   
   static const String moneyControlBaseUrl = 'https://www.moneycontrol.com/mutual-funds/nav/hdfc-mutual-fund';
 }
